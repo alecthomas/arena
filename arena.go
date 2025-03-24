@@ -157,15 +157,19 @@ func (a *Arena) alloc(n int) unsafe.Pointer {
 }
 
 func (a *Arena) resize(n int, next int64) unsafe.Pointer {
-	a.lock.Lock()
-	defer a.lock.Unlock()
+	a.lock.Lock() // Note that we don't defer Unlock here because resize is called recursively
 	if a.limit != 0 && int(a.chunkCursor) >= a.limit {
+		a.lock.Unlock()
 		panic(fmt.Sprintf("arena limit of %d chunks reached", a.limit))
 	}
 	// Another thread may have already expanded the arena.
 	if !a.cursor.CompareAndSwap(next, int64(n)) {
+		a.lock.Unlock()
 		return a.alloc(n)
 	}
+
+	// At this point we won't recurse, so we can defer the unlock.
+	defer a.lock.Unlock()
 	if a.chunkCursor < int64(len(a.chunks)-1) {
 		a.current = a.chunks[a.chunkCursor]
 	} else if len(a.chunks) < a.limit {

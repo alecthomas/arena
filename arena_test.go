@@ -1,7 +1,8 @@
 package arena
 
 import (
-	"fmt"
+	"strconv"
+	"sync"
 	"testing"
 	"unsafe"
 
@@ -17,6 +18,22 @@ type Struct struct {
 	Int64   int64
 	Uint32  uint32
 	Uint64  uint64
+}
+
+func TestConcurrent(t *testing.T) {
+	arena := Create(32 * 1024 * 1024)
+	array := make([]*Struct, 10*1000)
+	var wg sync.WaitGroup
+	for worker := range 10 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for j := range 1000 {
+				array[worker*1000+j] = New[Struct](arena)
+			}
+		}()
+	}
+	wg.Wait()
 }
 
 func TestArenaObjectTooLarge(t *testing.T) {
@@ -113,8 +130,8 @@ func BenchmarkArena(b *testing.B) {
 	arena := Create(32 * 1024 * 1024) // 32Mb chunk size
 
 	for _, objectCount := range []int{100, 1_000, 10_000, 100_000, 1_000_000} {
-		b.Run(fmt.Sprintf("%d", objectCount), func(b *testing.B) {
-			array := make([]*Struct, objectCount)
+		array := make([]*Struct, objectCount)
+		b.Run(strconv.Itoa(objectCount), func(b *testing.B) {
 			arena.Reset()
 			b.ReportAllocs()
 			b.ResetTimer()
@@ -130,7 +147,7 @@ func BenchmarkArena(b *testing.B) {
 func BenchmarkGoRuntime(b *testing.B) {
 	for _, objectCount := range []int{100, 1_000, 10_000, 100_000, 1_000_000} {
 		array := make([]*Struct, objectCount)
-		b.Run(fmt.Sprintf("%d", objectCount), func(b *testing.B) {
+		b.Run(strconv.Itoa(objectCount), func(b *testing.B) {
 			b.ReportAllocs()
 			b.ResetTimer()
 			for range b.N {
@@ -146,7 +163,7 @@ func BenchmarkArenaAppend(b *testing.B) {
 	arena := Create(512 * 1024 * 1024) // 512MB chunk size
 
 	for _, objectCount := range []int{100, 1_000, 10_000} {
-		b.Run(fmt.Sprintf("%d", objectCount), func(b *testing.B) {
+		b.Run(strconv.Itoa(objectCount), func(b *testing.B) {
 			arena.Reset()
 			b.ReportAllocs()
 			b.ResetTimer()
@@ -162,7 +179,7 @@ func BenchmarkArenaAppend(b *testing.B) {
 
 func BenchmarkGoRuntimeAppend(b *testing.B) {
 	for _, objectCount := range []int{100, 1_000, 10_000} {
-		b.Run(fmt.Sprintf("%d", objectCount), func(b *testing.B) {
+		b.Run(strconv.Itoa(objectCount), func(b *testing.B) {
 			b.ReportAllocs()
 			for range b.N {
 				s := make([]Struct, 0, 16)
@@ -178,7 +195,7 @@ func BenchmarkReset(b *testing.B) {
 	arena := Create(64 * 1024 * 1024) // 64MB chunk size
 
 	for _, objectCount := range []int{100, 1_000, 10_000} {
-		b.Run(fmt.Sprintf("%d", objectCount), func(b *testing.B) {
+		b.Run(strconv.Itoa(objectCount), func(b *testing.B) {
 			for range b.N {
 				s := Make[Struct](arena, 0, 16)
 				for j := range objectCount {
@@ -190,6 +207,31 @@ func BenchmarkReset(b *testing.B) {
 			for range b.N {
 				arena.Reset()
 			}
+		})
+	}
+}
+
+func BenchmarkConcurrent(b *testing.B) {
+	arena := Create(32 * 1024 * 1024) // 32Mb chunk size
+	for _, objectCount := range []int{100, 1_000, 10_000} {
+		array := make([]*Struct, objectCount)
+		b.Run(strconv.Itoa(objectCount), func(b *testing.B) {
+			arena.Reset()
+			wg := sync.WaitGroup{}
+			b.ReportAllocs()
+			b.ResetTimer()
+			for worker := range 10 {
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					for range b.N {
+						for j := range objectCount / 10 {
+							array[j*10+worker] = New[Struct](arena)
+						}
+					}
+				}()
+			}
+			wg.Wait()
 		})
 	}
 }

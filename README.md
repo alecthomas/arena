@@ -31,17 +31,27 @@ than the Go runtime and, of course, has zero allocations and minimal GC overhead
 goos: darwin
 goarch: arm64
 pkg: github.com/alecthomas/arena
-cpu: Apple M3
-BenchmarkArena/100-8               6155918         197 ns/op         0 B/op         0 allocs/op
-BenchmarkArena/1000-8               599896        1976 ns/op         0 B/op         0 allocs/op
-BenchmarkArena/10000-8               61201       19957 ns/op         0 B/op         0 allocs/op
-BenchmarkArena/100000-8               6133      198741 ns/op         0 B/op         0 allocs/op
-BenchmarkArena/1000000-8               588     2025277 ns/op         0 B/op         0 allocs/op
-BenchmarkGoRuntime/100-8            641896        1809 ns/op      8000 B/op       100 allocs/op
-BenchmarkGoRuntime/1000-8            66020       18014 ns/op     80000 B/op      1000 allocs/op
-BenchmarkGoRuntime/10000-8            5764      209803 ns/op    800011 B/op     10000 allocs/op
-BenchmarkGoRuntime/100000-8            560     2114053 ns/op   8000037 B/op    100000 allocs/op
-BenchmarkGoRuntime/1000000-8            56    21004230 ns/op  80000029 B/op   1000000 allocs/op
-PASS
-ok    github.com/alecthomas/arena  14.069s
+cpu: Apple M4
+BenchmarkArena/100-10          	 6332707	       188.5 ns/op	    6061 B/op	       0 allocs/op
+BenchmarkArena/1000-10         	  652868	      1868 ns/op	    2158 B/op	       0 allocs/op
+BenchmarkArena/10000-10        	   64929	     18521 ns/op	       0 B/op	       0 allocs/op
+BenchmarkArena/100000-10       	    6398	    187039 ns/op	       0 B/op	       0 allocs/op
+BenchmarkArena/1000000-10      	     615	   1941853 ns/op	       0 B/op	       0 allocs/op
+BenchmarkGoRuntime/100-10      	  342405	      3567 ns/op	    8000 B/op	     100 allocs/op
+BenchmarkGoRuntime/1000-10     	   32731	     35403 ns/op	   80000 B/op	    1000 allocs/op
+BenchmarkGoRuntime/10000-10    	    2656	    437390 ns/op	  800007 B/op	   10000 allocs/op
+BenchmarkGoRuntime/100000-10   	     457	   2566789 ns/op	 8000035 B/op	  100000 allocs/op
+BenchmarkGoRuntime/1000000-10  	      60	  19900749 ns/op	80000014 B/op	 1000000 allocs/op
+BenchmarkArenaAppend/100-10    	 1000000	      3158 ns/op	   17179 B/op	       0 allocs/op
+BenchmarkArenaAppend/1000-10   	   47565	     28922 ns/op	       0 B/op	       0 allocs/op
+BenchmarkArenaAppend/10000-10  	    3813	    361884 ns/op	       0 B/op	       0 allocs/op
+BenchmarkGoRuntimeAppend/100-10         	  194024	      6184 ns/op	   18944 B/op	       3 allocs/op
+BenchmarkGoRuntimeAppend/1000-10        	   24258	     50690 ns/op	  171777 B/op	       6 allocs/op
+BenchmarkGoRuntimeAppend/10000-10       	    1341	    900364 ns/op	 3391268 B/op	      14 allocs/op
+BenchmarkReset/100-10                   	    1928	    790078 ns/op	       0 B/op	       0 allocs/op
+BenchmarkReset/1000-10                  	    2125	   4050401 ns/op	       0 B/op	       0 allocs/op
+BenchmarkReset/10000-10                 	     366	  10557410 ns/op	       0 B/op	       0 allocs/op
+BenchmarkConcurrent/100-10              	  260062	      4850 ns/op	    6838 B/op	       0 allocs/op
+BenchmarkConcurrent/1000-10             	   26149	     43108 ns/op	    1283 B/op	       0 allocs/op
+BenchmarkConcurrent/10000-10            	    3010	    430277 ns/op	   89182 B/op	       0 allocs/op
 ```

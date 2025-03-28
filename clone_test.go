@@ -67,6 +67,10 @@ func TestClone(t *testing.T) {
 		t.Error("Ptr should be a different object")
 	}
 
+	if original.IntPtr == cloned.IntPtr {
+		t.Error("IntPtr should be a different object")
+	}
+
 	// Verify map values are different objects
 	for k, v := range original.Map {
 		if v == cloned.Map[k] {
@@ -82,7 +86,7 @@ func TestClone(t *testing.T) {
 	}
 
 	// Verify arena allocation
-	if a.cursor.Load() == 0 {
+	if _, cursor := a.cursor.Load(); cursor == 0 {
 		t.Error("Arena should have allocated memory")
 	}
 }

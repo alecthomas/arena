@@ -21,19 +21,25 @@ type Struct struct {
 }
 
 func TestConcurrent(t *testing.T) {
-	arena := Create(32 * 1024 * 1024)
-	array := make([]*Struct, 10*1000)
-	var wg sync.WaitGroup
-	for worker := range 10 {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for j := range 1000 {
-				array[worker*1000+j] = New[Struct](arena)
-			}
-		}()
-	}
-	wg.Wait()
+	const objectCount = 100
+	arena := Create(32 * 1024 * 1024) // 32Mb chunk size
+	array := make([]*Struct, objectCount)
+	t.Run(strconv.Itoa(objectCount), func(b *testing.T) {
+		arena.Reset()
+		wg := sync.WaitGroup{}
+		for worker := range 10 {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				for range 10000 {
+					for j := range objectCount / 10 {
+						array[j*10+worker] = New[Struct](arena)
+					}
+				}
+			}()
+		}
+		wg.Wait()
+	})
 }
 
 func TestArenaObjectTooLarge(t *testing.T) {
@@ -42,7 +48,7 @@ func TestArenaObjectTooLarge(t *testing.T) {
 }
 
 func TestArenaLimit(t *testing.T) {
-	arena := Create(int(unsafe.Sizeof(Struct{})), WithLimit(2))
+	arena := Create(uint64(unsafe.Sizeof(Struct{})), WithLimit(2))
 	assert.Equal(t, 1, len(arena.chunks))
 	New[Struct](arena)
 	assert.Equal(t, 2, len(arena.chunks))

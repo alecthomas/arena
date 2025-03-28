@@ -19,7 +19,7 @@ func cloneValue(arena *Arena, in, out reflect.Value) {
 			return
 		}
 		it := in.Type().Elem()
-		out.Set(reflect.NewAt(it, arena.alloc(int(it.Size()))))
+		out.Set(reflect.NewAt(it, arena.alloc(uint64(it.Size()))))
 		cloneValue(arena, in.Elem(), out.Elem())
 
 	case reflect.Struct:
@@ -42,7 +42,7 @@ func cloneValue(arena *Arena, in, out reflect.Value) {
 			return
 		}
 		it := in.Type().Elem()
-		out.Set(reflect.SliceAt(it, arena.alloc(in.Len()*int(it.Size())), in.Len()))
+		out.Set(reflect.SliceAt(it, arena.alloc(uint64(in.Len()*int(it.Size()))), in.Len())) //nolint:gosec
 		for i := range in.Len() {
 			cloneValue(arena, in.Index(i), out.Index(i))
 		}
@@ -55,8 +55,8 @@ func cloneValue(arena *Arena, in, out reflect.Value) {
 		it := in.MapRange()
 		for it.Next() {
 			ki, vi := it.Key(), it.Value()
-			ko := reflect.NewAt(ki.Type(), arena.alloc(int(ki.Type().Size()))).Elem()
-			vo := reflect.NewAt(vi.Type(), arena.alloc(int(vi.Type().Size()))).Elem()
+			ko := reflect.NewAt(ki.Type(), arena.alloc(uint64(ki.Type().Size()))).Elem()
+			vo := reflect.NewAt(vi.Type(), arena.alloc(uint64(vi.Type().Size()))).Elem()
 			cloneValue(arena, ki, ko)
 			cloneValue(arena, vi, vo)
 			m.SetMapIndex(ko, vo)
